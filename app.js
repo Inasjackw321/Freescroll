@@ -57,7 +57,7 @@ async function fetchNews(page = 1, append = false) {
         console.log(`Fetching news... page: ${page}, category: ${currentCategory}`);
 
         // Build API URL
-        let apiUrl = `${NEWS_API_URL}?country=us&pageSize=10&page=${page}&apiKey=${NEWS_API_KEY}`;
+        let apiUrl = `${NEWS_API_URL}?country=us&pageSize=50&page=${page}&apiKey=${NEWS_API_KEY}`;
         if (currentCategory) {
             apiUrl += `&category=${currentCategory}`;
         }
@@ -439,9 +439,7 @@ function renderComments(articleComments) {
 
     return articleComments.map(comment => `
         <div class="comment">
-            <div class="comment-avatar">${comment.username.charAt(0).toUpperCase()}</div>
             <div class="comment-content">
-                <div class="comment-username">${comment.username}</div>
                 <div class="comment-text">${escapeHtml(comment.text)}</div>
                 <div class="comment-time">${formatDate(comment.timestamp)}</div>
             </div>
@@ -684,6 +682,11 @@ if (categorySelect) {
 
 // Keyboard navigation
 document.addEventListener('keydown', (e) => {
+    // Don't interfere if user is typing in an input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+        return;
+    }
+
     if (e.key === 'ArrowDown' || e.key === ' ') {
         e.preventDefault();
         const nextIndex = Math.min(currentArticleIndex + 1, displayedArticles.length - 1);
