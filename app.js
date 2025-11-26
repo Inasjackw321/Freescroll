@@ -18,28 +18,44 @@ const swipeHint = document.querySelector('.swipe-hint');
 
 // Load saved interactions from localStorage
 function loadInteractions() {
-    likes = JSON.parse(localStorage.getItem('likes') || '{}');
-    dislikes = JSON.parse(localStorage.getItem('dislikes') || '{}');
-    comments = JSON.parse(localStorage.getItem('comments') || '{}');
+    try {
+        likes = JSON.parse(localStorage.getItem('likes') || '{}');
+        dislikes = JSON.parse(localStorage.getItem('dislikes') || '{}');
+        comments = JSON.parse(localStorage.getItem('comments') || '{}');
+    } catch (e) {
+        console.error('Error loading interactions:', e);
+        likes = {};
+        dislikes = {};
+        comments = {};
+    }
 }
 
 // Save interactions to localStorage
 function saveInteractions() {
-    localStorage.setItem('likes', JSON.stringify(likes));
-    localStorage.setItem('dislikes', JSON.stringify(dislikes));
-    localStorage.setItem('comments', JSON.stringify(comments));
+    try {
+        localStorage.setItem('likes', JSON.stringify(likes));
+        localStorage.setItem('dislikes', JSON.stringify(dislikes));
+        localStorage.setItem('comments', JSON.stringify(comments));
+    } catch (e) {
+        console.error('Error saving interactions:', e);
+    }
 }
 
 // Fetch news articles
 async function fetchNews() {
     try {
+        console.log('Fetching news...');
         // Fetch live news from NewsAPI
         const response = await fetch(`${NEWS_API_URL}?country=us&pageSize=20&apiKey=${NEWS_API_KEY}`);
         const data = await response.json();
 
+        console.log('API Response:', data);
+
         if (data.status === 'ok' && data.articles && data.articles.length > 0) {
             articles = data.articles.filter(article => article.title && article.description);
+            console.log('Loaded articles:', articles.length);
         } else {
+            console.log('Using fallback articles');
             // Fallback to sample data if API fails
             articles = getSampleArticles();
         }
@@ -116,6 +132,7 @@ function getSampleArticles() {
 
 // Render articles to DOM
 function renderArticles() {
+    console.log('Rendering articles...');
     scrollContainer.innerHTML = '';
 
     articles.forEach((article, index) => {
@@ -124,6 +141,7 @@ function renderArticles() {
     });
 
     totalArticlesEl.textContent = articles.length;
+    console.log('Rendered', articles.length, 'articles');
 }
 
 // Create article card element
@@ -140,9 +158,13 @@ function createArticleCard(article, index) {
     const dislikeCount = dislikes[articleId] || 0;
     const articleComments = comments[articleId] || [];
 
+    // Escape quotes for safe HTML
+    const safeUrl = article.url.replace(/'/g, "&apos;");
+    const safeTitle = article.title.replace(/'/g, "&apos;");
+
     card.innerHTML = `
         <div class="article-header">
-            <div class="article-thumbnail" onclick="openArticle('${article.url}')" style="background-image: url('${imageUrl}')">
+            <div class="article-thumbnail" data-url="${safeUrl}" style="background-image: url('${imageUrl}')">
                 <div class="play-overlay">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="white">
                         <path d="M8 5v14l11-7z"/>
@@ -151,7 +173,7 @@ function createArticleCard(article, index) {
             </div>
             <div class="article-info">
                 <div class="article-source-badge">${article.source.name}</div>
-                <h2 class="article-title" onclick="openArticle('${article.url}')">${article.title}</h2>
+                <h2 class="article-title" data-url="${safeUrl}">${article.title}</h2>
                 <p class="article-description">${article.description || ''}</p>
                 <div class="article-meta">
                     <span class="article-author">${article.author || 'Unknown'}</span>
@@ -161,25 +183,25 @@ function createArticleCard(article, index) {
         </div>
 
         <div class="engagement-section">
-            <button class="like-btn ${likes[articleId] > 0 ? 'active' : ''}" onclick="handleLike('${articleId}', ${index})">
+            <button class="like-btn ${likeCount > 0 ? 'active' : ''}" data-article-id="${articleId}" data-index="${index}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path d="M7 22V11M2 13V20C2 21.1046 2.89543 22 4 22H16.4262C17.907 22 19.1662 20.9197 19.3914 19.4562L20.4683 12.4562C20.7479 10.6389 19.3418 9 17.5032 9H14V4C14 2.89543 13.1046 2 12 2C11.4477 2 11 2.44772 11 3V3.56075C11 3.93742 10.786 4.28278 10.447 4.44721L7 6.5V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span>${likeCount}</span>
             </button>
-            <button class="dislike-btn ${dislikes[articleId] > 0 ? 'active' : ''}" onclick="handleDislike('${articleId}', ${index})">
+            <button class="dislike-btn ${dislikeCount > 0 ? 'active' : ''}" data-article-id="${articleId}" data-index="${index}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path d="M17 2V13M22 11V4C22 2.89543 21.1046 2 20 2H7.57377C6.09297 2 4.83382 3.08025 4.60862 4.54377L3.53172 11.5438C3.25213 13.3611 4.65823 15 6.49681 15H10V20C10 21.1046 10.8954 22 12 22C12.5523 22 13 21.5523 13 21V20.4392C13 20.0626 13.214 19.7172 13.553 19.5528L17 17.5V2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span>${dislikeCount}</span>
             </button>
-            <button class="comment-btn" onclick="toggleComments('${articleId}')">
+            <button class="comment-btn" data-article-id="${articleId}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path d="M21 11.5C21.0034 12.8199 20.6951 14.1219 20.1 15.3C19.3944 16.7118 18.3098 17.8992 16.9674 18.7293C15.6251 19.5594 14.0782 19.9994 12.5 20C11.1801 20.0035 9.87812 19.6951 8.7 19.1L3 21L4.9 15.3C4.30493 14.1219 3.99656 12.8199 4 11.5C4.00061 9.92179 4.44061 8.37488 5.27072 7.03258C6.10083 5.69028 7.28825 4.6056 8.7 3.90003C9.87812 3.30496 11.1801 2.99659 12.5 3.00003H13C15.0843 3.11502 17.053 3.99479 18.5291 5.47089C20.0052 6.94699 20.885 8.91568 21 11V11.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span>${articleComments.length}</span>
             </button>
-            <button class="share-btn" onclick="shareArticle('${article.url}', '${article.title.replace(/'/g, "\\'")}')">
+            <button class="share-btn" data-url="${safeUrl}" data-title="${safeTitle}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path d="M4 12V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V12M16 6L12 2M12 2L8 6M12 2V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -189,19 +211,103 @@ function createArticleCard(article, index) {
         <div class="discussion-section" id="discussion-${articleId}" style="display: none;">
             <div class="comments-header">
                 <h3>Discussion</h3>
-                <button class="close-comments" onclick="toggleComments('${articleId}')">×</button>
+                <button class="close-comments" data-article-id="${articleId}">×</button>
             </div>
             <div class="comments-list" id="comments-${articleId}">
                 ${renderComments(articleComments)}
             </div>
             <div class="comment-input-section">
                 <input type="text" class="comment-input" id="input-${articleId}" placeholder="Add a comment..." />
-                <button class="post-comment-btn" onclick="postComment('${articleId}')">Post</button>
+                <button class="post-comment-btn" data-article-id="${articleId}">Post</button>
             </div>
         </div>
     `;
 
+    // Add event listeners
+    addCardEventListeners(card, articleId, index);
+
     return card;
+}
+
+// Add event listeners to card
+function addCardEventListeners(card, articleId, index) {
+    // Thumbnail click
+    const thumbnail = card.querySelector('.article-thumbnail');
+    if (thumbnail) {
+        thumbnail.addEventListener('click', () => {
+            const url = thumbnail.dataset.url;
+            if (url) window.open(url, '_blank');
+        });
+    }
+
+    // Title click
+    const title = card.querySelector('.article-title');
+    if (title) {
+        title.addEventListener('click', () => {
+            const url = title.dataset.url;
+            if (url) window.open(url, '_blank');
+        });
+    }
+
+    // Like button
+    const likeBtn = card.querySelector('.like-btn');
+    if (likeBtn) {
+        likeBtn.addEventListener('click', () => {
+            handleLike(articleId, index);
+        });
+    }
+
+    // Dislike button
+    const dislikeBtn = card.querySelector('.dislike-btn');
+    if (dislikeBtn) {
+        dislikeBtn.addEventListener('click', () => {
+            handleDislike(articleId, index);
+        });
+    }
+
+    // Comment button
+    const commentBtn = card.querySelector('.comment-btn');
+    if (commentBtn) {
+        commentBtn.addEventListener('click', () => {
+            toggleComments(articleId);
+        });
+    }
+
+    // Share button
+    const shareBtn = card.querySelector('.share-btn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', () => {
+            const url = shareBtn.dataset.url;
+            const title = shareBtn.dataset.title;
+            shareArticle(url, title);
+        });
+    }
+
+    // Close comments button
+    const closeBtn = card.querySelector('.close-comments');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            toggleComments(articleId);
+        });
+    }
+
+    // Post comment button
+    const postBtn = card.querySelector('.post-comment-btn');
+    if (postBtn) {
+        postBtn.addEventListener('click', () => {
+            postComment(articleId);
+        });
+    }
+
+    // Enter key on comment input
+    const input = card.querySelector('.comment-input');
+    if (input) {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                postComment(articleId);
+            }
+        });
+    }
 }
 
 // Render comments
@@ -215,11 +321,18 @@ function renderComments(articleComments) {
             <div class="comment-avatar">${comment.username.charAt(0).toUpperCase()}</div>
             <div class="comment-content">
                 <div class="comment-username">${comment.username}</div>
-                <div class="comment-text">${comment.text}</div>
+                <div class="comment-text">${escapeHtml(comment.text)}</div>
                 <div class="comment-time">${formatDate(comment.timestamp)}</div>
             </div>
         </div>
     `).join('');
+}
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Format date
@@ -256,17 +369,21 @@ function handleDislike(articleId, index) {
 // Toggle comments
 function toggleComments(articleId) {
     const discussionSection = document.getElementById(`discussion-${articleId}`);
-    if (discussionSection.style.display === 'none') {
-        discussionSection.style.display = 'block';
-        discussionSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } else {
-        discussionSection.style.display = 'none';
+    if (discussionSection) {
+        if (discussionSection.style.display === 'none') {
+            discussionSection.style.display = 'block';
+            discussionSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+            discussionSection.style.display = 'none';
+        }
     }
 }
 
 // Post comment
 function postComment(articleId) {
     const input = document.getElementById(`input-${articleId}`);
+    if (!input) return;
+
     const commentText = input.value.trim();
 
     if (commentText) {
@@ -284,7 +401,9 @@ function postComment(articleId) {
 
         // Update comments display
         const commentsList = document.getElementById(`comments-${articleId}`);
-        commentsList.innerHTML = renderComments(comments[articleId]);
+        if (commentsList) {
+            commentsList.innerHTML = renderComments(comments[articleId]);
+        }
 
         // Update comment count
         const index = parseInt(articleId.split('-')[1]);
@@ -308,11 +427,6 @@ function updateEngagement(articleId, index) {
     if (commentBtn) commentBtn.textContent = (comments[articleId] || []).length;
 }
 
-// Open article
-function openArticle(url) {
-    window.open(url, '_blank');
-}
-
 // Share article
 function shareArticle(url, title) {
     if (navigator.share) {
@@ -324,6 +438,8 @@ function shareArticle(url, title) {
         // Fallback: copy to clipboard
         navigator.clipboard.writeText(url).then(() => {
             alert('Link copied to clipboard!');
+        }).catch(() => {
+            console.log('Could not copy to clipboard');
         });
     }
 }
@@ -348,13 +464,17 @@ function updateScrollIndicator() {
 
 // Hide loading indicator
 function hideLoading() {
-    loading.classList.add('hidden');
+    if (loading) {
+        loading.classList.add('hidden');
+    }
 }
 
 // Scroll event listener
-scrollContainer.addEventListener('scroll', () => {
-    updateScrollIndicator();
-});
+if (scrollContainer) {
+    scrollContainer.addEventListener('scroll', () => {
+        updateScrollIndicator();
+    });
+}
 
 // Keyboard navigation
 document.addEventListener('keydown', (e) => {
@@ -379,6 +499,17 @@ function scrollToArticle(index) {
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('App initializing...');
     loadInteractions();
     fetchNews();
 });
+
+// Also run immediately in case DOMContentLoaded already fired
+if (document.readyState === 'loading') {
+    // Still loading, wait for DOMContentLoaded
+} else {
+    // DOM is ready
+    console.log('DOM already loaded, initializing...');
+    loadInteractions();
+    fetchNews();
+}
