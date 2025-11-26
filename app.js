@@ -5,16 +5,26 @@ const NEWS_API_URL = 'https://newsapi.org/v2/top-headlines';
 // App State
 let currentArticleIndex = 0;
 let articles = [];
+let allArticles = []; // Store all fetched articles
+let displayedArticles = []; // Currently displayed articles (filtered)
 let likes = {};
 let dislikes = {};
 let comments = {};
+let currentPage = 1;
+let isLoadingMore = false;
+let currentCategory = '';
+let searchQuery = '';
 
 // DOM Elements
 const scrollContainer = document.getElementById('scroll-container');
 const loading = document.getElementById('loading');
+const loadingMore = document.getElementById('loading-more');
 const currentIndexEl = document.getElementById('current-index');
 const totalArticlesEl = document.getElementById('total-articles');
 const swipeHint = document.querySelector('.swipe-hint');
+const searchInput = document.getElementById('search-input');
+const clearSearchBtn = document.getElementById('clear-search');
+const categorySelect = document.getElementById('category-select');
 
 // Load saved interactions from localStorage
 function loadInteractions() {
@@ -42,40 +52,69 @@ function saveInteractions() {
 }
 
 // Fetch news articles
-async function fetchNews() {
+async function fetchNews(page = 1, append = false) {
     try {
-        console.log('Fetching news...');
+        console.log(`Fetching news... page: ${page}, category: ${currentCategory}`);
+
+        // Build API URL
+        let apiUrl = `${NEWS_API_URL}?country=us&pageSize=10&page=${page}&apiKey=${NEWS_API_KEY}`;
+        if (currentCategory) {
+            apiUrl += `&category=${currentCategory}`;
+        }
+
         // Fetch live news from NewsAPI
-        const response = await fetch(`${NEWS_API_URL}?country=us&pageSize=20&apiKey=${NEWS_API_KEY}`);
+        const response = await fetch(apiUrl);
         const data = await response.json();
 
         console.log('API Response:', data);
 
         if (data.status === 'ok' && data.articles && data.articles.length > 0) {
-            articles = data.articles.filter(article => article.title && article.description);
-            console.log('Loaded articles:', articles.length);
+            const newArticles = data.articles.filter(article => article.title && article.description);
+
+            if (append) {
+                allArticles = [...allArticles, ...newArticles];
+            } else {
+                allArticles = newArticles;
+            }
+
+            console.log('Loaded articles:', newArticles.length);
         } else {
             console.log('Using fallback articles');
-            // Fallback to sample data if API fails
-            articles = getSampleArticles();
+            if (!append || allArticles.length === 0) {
+                allArticles = getSampleArticles();
+            }
         }
 
-        renderArticles();
+        applyFilters();
+
+        if (!append) {
+            renderArticles();
+        } else {
+            appendArticles();
+        }
+
         updateScrollIndicator();
         hideLoading();
+        hideLoadingMore();
 
         // Hide swipe hint after 5 seconds
-        setTimeout(() => {
-            if (swipeHint) swipeHint.classList.add('hidden');
-        }, 5000);
+        if (!append) {
+            setTimeout(() => {
+                if (swipeHint) swipeHint.classList.add('hidden');
+            }, 5000);
+        }
 
     } catch (error) {
         console.error('Error fetching news:', error);
         // Use sample data as fallback
-        articles = getSampleArticles();
-        renderArticles();
-        updateScrollIndicator();
+        if (!append || allArticles.length === 0) {
+            allArticles = getSampleArticles();
+            applyFilters();
+            renderArticles();
+            updateScrollIndicator();
+        }
         hideLoading();
+        hideLoadingMore();
     }
 }
 
@@ -126,8 +165,73 @@ function getSampleArticles() {
             urlToImage: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&h=600&fit=crop",
             publishedAt: new Date(Date.now() - 14400000).toISOString(),
             author: "Lisa Anderson"
+        },
+        {
+            source: { name: "The Guardian" },
+            title: "Climate Action Summit Yields Historic Agreement",
+            description: "World leaders commit to ambitious carbon reduction targets in landmark environmental accord. Environmental groups cautiously optimistic about implementation.",
+            url: "https://theguardian.com",
+            urlToImage: "https://images.unsplash.com/photo-1569163139394-de4798aa62b6?w=800&h=600&fit=crop",
+            publishedAt: new Date(Date.now() - 18000000).toISOString(),
+            author: "James Thompson"
+        },
+        {
+            source: { name: "Forbes" },
+            title: "Startups Reshape Healthcare with AI Diagnostics",
+            description: "Innovative companies leverage artificial intelligence to improve disease detection accuracy. Medical professionals embrace technology while maintaining human oversight.",
+            url: "https://forbes.com",
+            urlToImage: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&h=600&fit=crop",
+            publishedAt: new Date(Date.now() - 21600000).toISOString(),
+            author: "Rachel Kim"
+        },
+        {
+            source: { name: "NPR" },
+            title: "Education Technology Transforms Remote Learning",
+            description: "New platforms make online education more engaging and effective. Students and teachers adapt to hybrid learning models with promising results.",
+            url: "https://npr.org",
+            urlToImage: "https://images.unsplash.com/photo-1588072432836-e10032774350?w=800&h=600&fit=crop",
+            publishedAt: new Date(Date.now() - 25200000).toISOString(),
+            author: "Tom Bradley"
+        },
+        {
+            source: { name: "CNBC" },
+            title: "Cryptocurrency Regulation Takes Shape Globally",
+            description: "Governments worldwide implement frameworks for digital asset oversight. Industry participants seek clarity while maintaining innovation.",
+            url: "https://cnbc.com",
+            urlToImage: "https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=800&h=600&fit=crop",
+            publishedAt: new Date(Date.now() - 28800000).toISOString(),
+            author: "Jennifer Lopez"
+        },
+        {
+            source: { name: "National Geographic" },
+            title: "New Species Discovered in Deep Ocean Expedition",
+            description: "Marine biologists uncover dozens of previously unknown creatures in unexplored ocean depths. Findings highlight importance of ocean conservation.",
+            url: "https://nationalgeographic.com",
+            urlToImage: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop",
+            publishedAt: new Date(Date.now() - 32400000).toISOString(),
+            author: "Dr. Patricia Moore"
         }
     ];
+}
+
+// Apply search and filters
+function applyFilters() {
+    let filtered = [...allArticles];
+
+    // Apply search filter
+    if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        filtered = filtered.filter(article => {
+            return (
+                article.title.toLowerCase().includes(query) ||
+                (article.description && article.description.toLowerCase().includes(query)) ||
+                article.source.name.toLowerCase().includes(query)
+            );
+        });
+    }
+
+    displayedArticles = filtered;
+    console.log('Filtered articles:', displayedArticles.length);
 }
 
 // Render articles to DOM
@@ -135,13 +239,30 @@ function renderArticles() {
     console.log('Rendering articles...');
     scrollContainer.innerHTML = '';
 
-    articles.forEach((article, index) => {
+    displayedArticles.forEach((article, index) => {
         const articleCard = createArticleCard(article, index);
         scrollContainer.appendChild(articleCard);
     });
 
-    totalArticlesEl.textContent = articles.length;
-    console.log('Rendered', articles.length, 'articles');
+    totalArticlesEl.textContent = displayedArticles.length;
+    console.log('Rendered', displayedArticles.length, 'articles');
+}
+
+// Append articles for infinite scroll
+function appendArticles() {
+    console.log('Appending new articles...');
+
+    const startIndex = displayedArticles.length - (allArticles.length - displayedArticles.length);
+    const newArticles = displayedArticles.slice(startIndex);
+
+    newArticles.forEach((article, idx) => {
+        const index = startIndex + idx;
+        const articleCard = createArticleCard(article, index);
+        scrollContainer.appendChild(articleCard);
+    });
+
+    totalArticlesEl.textContent = displayedArticles.length;
+    console.log('Appended articles, total now:', displayedArticles.length);
 }
 
 // Create article card element
@@ -469,18 +590,103 @@ function hideLoading() {
     }
 }
 
+// Show loading more indicator
+function showLoadingMore() {
+    if (loadingMore) {
+        loadingMore.style.display = 'block';
+    }
+}
+
+// Hide loading more indicator
+function hideLoadingMore() {
+    if (loadingMore) {
+        loadingMore.style.display = 'none';
+    }
+}
+
+// Handle infinite scroll
+function handleInfiniteScroll() {
+    if (isLoadingMore) return;
+
+    const scrollPosition = scrollContainer.scrollTop;
+    const scrollHeight = scrollContainer.scrollHeight;
+    const clientHeight = scrollContainer.clientHeight;
+
+    // Load more when within 2 screens of the bottom
+    if (scrollHeight - scrollPosition - clientHeight < clientHeight * 2) {
+        console.log('Near bottom - loading more articles');
+        isLoadingMore = true;
+        showLoadingMore();
+        currentPage++;
+
+        fetchNews(currentPage, true).then(() => {
+            isLoadingMore = false;
+        });
+    }
+}
+
+// Handle search input
+function handleSearch() {
+    searchQuery = searchInput.value.trim();
+
+    if (searchQuery) {
+        clearSearchBtn.style.display = 'flex';
+    } else {
+        clearSearchBtn.style.display = 'none';
+    }
+
+    applyFilters();
+    renderArticles();
+    updateScrollIndicator();
+}
+
+// Clear search
+function clearSearch() {
+    searchInput.value = '';
+    searchQuery = '';
+    clearSearchBtn.style.display = 'none';
+    applyFilters();
+    renderArticles();
+    updateScrollIndicator();
+}
+
+// Handle category change
+function handleCategoryChange() {
+    currentCategory = categorySelect.value;
+    currentPage = 1;
+    allArticles = [];
+    console.log('Category changed to:', currentCategory || 'All News');
+    fetchNews(1, false);
+}
+
 // Scroll event listener
 if (scrollContainer) {
     scrollContainer.addEventListener('scroll', () => {
         updateScrollIndicator();
+        handleInfiniteScroll();
     });
+}
+
+// Search input listener
+if (searchInput) {
+    searchInput.addEventListener('input', handleSearch);
+}
+
+// Clear search button listener
+if (clearSearchBtn) {
+    clearSearchBtn.addEventListener('click', clearSearch);
+}
+
+// Category select listener
+if (categorySelect) {
+    categorySelect.addEventListener('change', handleCategoryChange);
 }
 
 // Keyboard navigation
 document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown' || e.key === ' ') {
         e.preventDefault();
-        const nextIndex = Math.min(currentArticleIndex + 1, articles.length - 1);
+        const nextIndex = Math.min(currentArticleIndex + 1, displayedArticles.length - 1);
         scrollToArticle(nextIndex);
     } else if (e.key === 'ArrowUp') {
         e.preventDefault();

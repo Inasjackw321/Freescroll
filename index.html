@@ -8,10 +8,38 @@
 </head>
 <body>
     <div class="app-container">
+        <!-- Search Header -->
+        <div class="search-header">
+            <div class="search-container">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                    <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <input type="text" id="search-input" class="search-input" placeholder="Search news...">
+                <button id="clear-search" class="clear-search" style="display: none;">×</button>
+            </div>
+            <select id="category-select" class="category-select">
+                <option value="">All News</option>
+                <option value="business">Business</option>
+                <option value="entertainment">Entertainment</option>
+                <option value="general">General</option>
+                <option value="health">Health</option>
+                <option value="science">Science</option>
+                <option value="sports">Sports</option>
+                <option value="technology">Technology</option>
+            </select>
+        </div>
+
         <!-- Loading indicator -->
         <div id="loading" class="loading">
             <div class="spinner"></div>
             <p>Loading news...</p>
+        </div>
+
+        <!-- Infinite scroll loading indicator -->
+        <div id="loading-more" class="loading-more" style="display: none;">
+            <div class="spinner-small"></div>
+            <p>Loading more...</p>
         </div>
 
         <!-- Scroll container -->
