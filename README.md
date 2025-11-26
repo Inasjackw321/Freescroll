@@ -6,7 +6,13 @@ A TikTok-style vertical scrolling news reader that makes consuming news articles
 
 - 📱 **TikTok-Style Scrolling**: Full-screen vertical scrolling with snap-to-section
 - 📰 **Real-time News**: Fetches latest news articles from NewsAPI
-- 🎨 **Beautiful Design**: Gradient backgrounds and modern UI
+- 🖼️ **Article Thumbnails**: Eye-catching image previews alongside article info
+- 👍 **Like/Dislike System**: Interactive engagement buttons with counters
+- 💬 **Discussion Section**: Full-featured commenting system for each article
+- 🔗 **Clickable Articles**: Tap thumbnails or titles to read full stories
+- 📤 **Share Functionality**: Native share API support
+- 💾 **Persistent Data**: All interactions saved in localStorage
+- 🎨 **Modern Dark Theme**: Beautiful UI with smooth animations
 - 📱 **Mobile Responsive**: Optimized for both desktop and mobile
 - ⌨️ **Keyboard Navigation**: Use arrow keys to navigate articles
 - 👆 **Touch Gestures**: Swipe up/down on mobile devices
@@ -36,20 +42,23 @@ Visit the live demo: [FreeScroll on GitHub Pages](https://inasjackw321.github.io
 
 ### Using with Real News API
 
-To fetch live news articles:
+The app comes with NewsAPI integration. To use your own API key:
 
 1. Get a free API key from [NewsAPI.org](https://newsapi.org/register)
-2. Open `app.js` and replace the API key:
+2. Open `app.js` and replace the API key on line 2:
    ```javascript
    const NEWS_API_KEY = 'your_api_key_here';
    ```
-3. Uncomment the API fetch code in the `fetchNews()` function
+3. The app will automatically fetch live news. If the API fails, it falls back to sample articles
 
 ## How to Use
 
 - **Desktop**: Use arrow keys (↑/↓) or scroll with mouse wheel
 - **Mobile**: Swipe up/down to navigate between articles
-- **Read More**: Click the "Read Full Story" button to open the article in a new tab
+- **Read Article**: Click on the thumbnail or title to open the full article
+- **Like/Dislike**: Tap the thumbs up/down buttons to react to articles
+- **Comment**: Click the comment button to open the discussion section
+- **Share**: Use the share button to share articles via native share or clipboard
 
 ## Customization
 
