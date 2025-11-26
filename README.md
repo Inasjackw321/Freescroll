@@ -1,24 +1,32 @@
 # FreeScroll - TikTok for News
 
-A TikTok-style vertical scrolling news reader that makes consuming news articles as engaging as scrolling through social media.
+A beautiful TikTok-style vertical scrolling news reader with a stunning liquid glass UI that makes consuming news articles as engaging as scrolling through social media.
 
 ## Features
 
+### Design & UI
+- 🌊 **Liquid Glass Design**: Stunning glassmorphism UI with frosted glass effects
+- 📱 **9:16 TikTok Ratio**: Perfect vertical phone aspect ratio (450px x 800px)
+- 🎨 **Gradient Background**: Beautiful blue/purple gradient backdrop
+- ✨ **Smooth Animations**: Buttery smooth transitions and hover effects
+- 💎 **Backdrop Blur**: Advanced blur and saturation filters throughout
+
+### Content & Navigation
 - 📱 **TikTok-Style Scrolling**: Full-screen vertical scrolling with snap-to-section
-- ♾️ **Infinite Scroll**: Automatically loads more articles as you scroll down
+- ♾️ **True Infinite Scroll**: Loads 50 articles initially, endless scrolling
 - 🔍 **Real-time Search**: Search articles by title, description, or source
 - 📂 **Category Filter**: Browse news by category (tech, business, sports, etc.)
-- 📰 **Real-time News**: Fetches latest news articles from NewsAPI
+- 📰 **Live News**: Fetches latest news articles from NewsAPI
 - 🖼️ **Article Thumbnails**: Eye-catching image previews alongside article info
-- 👍 **Like/Dislike System**: Interactive engagement buttons with counters
-- 💬 **Discussion Section**: Full-featured commenting system for each article
+
+### Interaction
+- 👍 **Like/Dislike System**: Glass-styled engagement buttons with counters
+- 💬 **Anonymous Discussion**: Clean comment system without usernames
 - 🔗 **Clickable Articles**: Tap thumbnails or titles to read full stories
 - 📤 **Share Functionality**: Native share API support
-- 💾 **Persistent Data**: All interactions saved in localStorage
-- 🎨 **Modern Dark Theme**: Beautiful UI with smooth animations
-- 📱 **Mobile Responsive**: Optimized for both desktop and mobile
-- ⌨️ **Keyboard Navigation**: Use arrow keys to navigate articles
+- ⌨️ **Keyboard Navigation**: Arrow keys + Space bar to navigate
 - 👆 **Touch Gestures**: Swipe up/down on mobile devices
+- 💾 **Persistent Data**: All interactions saved in localStorage
 
 ## Demo
 
@@ -56,15 +64,20 @@ The app comes with NewsAPI integration. To use your own API key:
 
 ## How to Use
 
-- **Search**: Type in the search bar at the top to filter articles in real-time
+- **Search**: Type in the glass search bar at the top to filter articles in real-time
 - **Filter by Category**: Use the dropdown menu to browse specific news categories
-- **Desktop**: Use arrow keys (↑/↓) or scroll with mouse wheel to navigate
-- **Mobile**: Swipe up/down to navigate between articles
-- **Infinite Scroll**: Just keep scrolling! More articles load automatically
-- **Read Article**: Click on the thumbnail or title to open the full article
-- **Like/Dislike**: Tap the thumbs up/down buttons to react to articles
-- **Comment**: Click the comment button to open the discussion section
-- **Share**: Use the share button to share articles via native share or clipboard
+- **Navigate**:
+  - Desktop: Arrow keys (↑/↓) or **Space bar** to scroll between articles
+  - Mouse: Scroll wheel for smooth vertical scrolling
+  - Mobile: Swipe up/down to navigate
+- **Infinite Scroll**: Just keep scrolling! 50 articles load initially, more load automatically
+- **Read Article**: Click on the thumbnail or title to open the full article in a new tab
+- **Engage**:
+  - **Like/Dislike**: Tap the glass-styled thumbs up/down buttons
+  - **Comment**: Click comment button to open anonymous discussion
+  - **Share**: Use the share button (native share or clipboard)
+- **9:16 Format**: On desktop, the app displays in a perfect vertical phone ratio
+- All interactions are saved locally and persist across sessions!
 
 ## Customization
 
