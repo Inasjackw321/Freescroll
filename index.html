@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeScroll - TikTok for News</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Loading indicator -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading news...</p>
+        </div>
+
+        <!-- Scroll container -->
+        <div id="scroll-container" class="scroll-container">
+            <!-- News articles will be dynamically inserted here -->
+        </div>
+
+        <!-- Navigation indicators -->
+        <div class="scroll-indicator">
+            <span id="current-index">1</span> / <span id="total-articles">0</span>
+        </div>
+
+        <!-- Swipe up hint -->
+        <div class="swipe-hint">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Swipe up for more</span>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
