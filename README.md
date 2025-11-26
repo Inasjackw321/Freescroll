@@ -5,6 +5,9 @@ A TikTok-style vertical scrolling news reader that makes consuming news articles
 ## Features
 
 - 📱 **TikTok-Style Scrolling**: Full-screen vertical scrolling with snap-to-section
+- ♾️ **Infinite Scroll**: Automatically loads more articles as you scroll down
+- 🔍 **Real-time Search**: Search articles by title, description, or source
+- 📂 **Category Filter**: Browse news by category (tech, business, sports, etc.)
 - 📰 **Real-time News**: Fetches latest news articles from NewsAPI
 - 🖼️ **Article Thumbnails**: Eye-catching image previews alongside article info
 - 👍 **Like/Dislike System**: Interactive engagement buttons with counters
@@ -53,8 +56,11 @@ The app comes with NewsAPI integration. To use your own API key:
 
 ## How to Use
 
-- **Desktop**: Use arrow keys (↑/↓) or scroll with mouse wheel
+- **Search**: Type in the search bar at the top to filter articles in real-time
+- **Filter by Category**: Use the dropdown menu to browse specific news categories
+- **Desktop**: Use arrow keys (↑/↓) or scroll with mouse wheel to navigate
 - **Mobile**: Swipe up/down to navigate between articles
+- **Infinite Scroll**: Just keep scrolling! More articles load automatically
 - **Read Article**: Click on the thumbnail or title to open the full article
 - **Like/Dislike**: Tap the thumbs up/down buttons to react to articles
 - **Comment**: Click the comment button to open the discussion section
